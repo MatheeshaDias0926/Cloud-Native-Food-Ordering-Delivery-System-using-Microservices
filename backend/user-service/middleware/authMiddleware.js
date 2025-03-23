@@ -54,7 +54,16 @@ const requireRoleBuyer = async (req, res, next) => {
   }
 };
 
+const requireRoleDeliveryPersonnel = async (req, res, next) => {
+  if (decoded.role === "delivery_personnel") {
+    next();
+  } else {
+    res.status(403).json({ message: "Unauthorized" });
+  }
+};
+
 exports.requireAuth = requireAuth;
 exports.requireRoleSeller = requireRoleSeller;
 exports.requireRoleAdmin = requireRoleAdmin;
 exports.requireRoleBuyer = requireRoleBuyer;
+exports.requireRoleDeliveryPersonnel = requireRoleDeliveryPersonnel;

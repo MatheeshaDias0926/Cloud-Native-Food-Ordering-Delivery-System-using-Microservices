@@ -1,0 +1,13 @@
+version: "3"
+services:
+  user-service:
+    image: user-service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"

@@ -233,11 +233,9 @@ const updateProfile = async (req, res, next) => {
   }
 
   if (existingUser) {
-    return res
-      .status(400)
-      .json({
-        message: "This email is already exists. use a different email. ",
-      });
+    return res.status(400).json({
+      message: "This email is already exists. use a different email. ",
+    });
   }
   try {
     user = await User.findByIdAndUpdate(userId, {
@@ -288,11 +286,79 @@ const updatePassword = async (req, res, next) => {
   }
 };
 
-exports.signUp = signUp;
-exports.login = login;
-exports.getUser = getUser;
-exports.getUsers = getUsers;
-exports.logout = logout;
-exports.deleteUser = deleteUser;
-exports.updateProfile = updateProfile;
-exports.updatePassword = updatePassword;
+// Get all delivery personnel
+const getDeliveryPersonnel = async (req, res) => {
+  try {
+    const deliveryPersonnel = await User.find({ role: "delivery_personnel" });
+    res.status(200).json({ deliveryPersonnel });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error fetching delivery personnel" });
+  }
+};
+
+// Get all restaurant staff
+const getRestaurantStaff = async (req, res) => {
+  try {
+    const restaurantStaff = await User.find({ role: "seller" });
+    res.status(200).json({ restaurantStaff });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error fetching restaurant staff" });
+  }
+};
+
+// Update delivery personnel status
+const updateDeliveryPersonnelStatus = async (req, res) => {
+  const { userId, isActive } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isActive },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "Delivery personnel not found" });
+    }
+    res.status(200).json({ message: "Status updated successfully", user });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(500)
+      .json({ message: "Error updating delivery personnel status" });
+  }
+};
+
+// Update restaurant staff status
+const updateRestaurantStaffStatus = async (req, res) => {
+  const { userId, isActive } = req.body;
+  try {
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { isActive },
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ message: "Restaurant staff not found" });
+    }
+    res.status(200).json({ message: "Status updated successfully", user });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error updating restaurant staff status" });
+  }
+};
+
+module.exports = {
+  signUp,
+  login,
+  getUser,
+  getUsers,
+  logout,
+  deleteUser,
+  updateProfile,
+  updatePassword,
+  getDeliveryPersonnel,
+  getRestaurantStaff,
+  updateDeliveryPersonnelStatus,
+  updateRestaurantStaffStatus,
+};
