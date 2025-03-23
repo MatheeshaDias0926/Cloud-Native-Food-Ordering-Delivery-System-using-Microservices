@@ -7,12 +7,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - USER_SERVICE_URL=http://user-service:3001
-      - RESTAURANT_SERVICE_URL=http://restaurant-service:3002
-      - ORDER_SERVICE_URL=http://order-service:3003
-      - DELIVERY_SERVICE_URL=http://delivery-service:3004
-      - PAYMENT_SERVICE_URL=http://payment-service:3005
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - PORT=3000
+      - FRONTEND_URL=http://localhost:3000
     depends_on:
       - user-service
       - restaurant-service
@@ -20,6 +16,8 @@ services:
       - delivery-service
       - payment-service
       - notification-service
+    networks:
+      - app-network
 
   user-service:
     build: ./user-service
@@ -28,10 +26,14 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - JWT_EXPIRES_IN=24h
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   restaurant-service:
     build: ./restaurant-service
@@ -40,10 +42,13 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3002
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   order-service:
     build: ./order-service
@@ -52,10 +57,13 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   delivery-service:
     build: ./delivery-service
@@ -64,10 +72,13 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3004
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   payment-service:
     build: ./payment-service
@@ -76,11 +87,14 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   notification-service:
     build: ./notification-service
@@ -89,33 +103,48 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3006
-      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=${JWT_SECRET}
-      - SMTP_HOST=${SMTP_HOST}
+      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - SMTP_HOST=smtp.gmail.com
       - SMTP_PORT=587
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_USER=your-email@gmail.com
+      - SMTP_PASS=your-app-specific-password
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    networks:
+      - app-network
 
   mongo:
     image: mongo:latest
     ports:
       - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+    volumes:
+      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
 
   redis:
-    image: redis:latest
+    image: redis:alpine
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass redis123
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
-volumes:
-  mongodb_data:
-  redis_data:
+networks:
+  app-network:
+    driver: bridge
