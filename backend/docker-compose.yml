@@ -1,13 +1,111 @@
-version: "3"
+version: "3.8"
+
 services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - USER_SERVICE_URL=http://user-service:3001
+      - RESTAURANT_SERVICE_URL=http://restaurant-service:3002
+      - ORDER_SERVICE_URL=http://order-service:3003
+      - DELIVERY_SERVICE_URL=http://delivery-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+    depends_on:
+      - user-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - payment-service
+      - notification-service
+
   user-service:
-    image: user-service
+    build: ./user-service
     ports:
       - "3001:3001"
     environment:
+      - NODE_ENV=development
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
       - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+
+  delivery-service:
+    build: ./delivery-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+    depends_on:
+      - mongo
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+      - STRIPE_SECRET_KEY=your_stripe_secret_key
+    depends_on:
+      - mongo
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/fooddelivery
+      - JWT_SECRET=your_jwt_secret
+      - SMTP_HOST=your_smtp_host
+      - SMTP_PORT=587
+      - SMTP_USER=your_smtp_user
+      - SMTP_PASS=your_smtp_password
+    depends_on:
+      - mongo
+
   mongo:
-    image: mongo
+    image: mongo:latest
     ports:
       - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongodb_data:
+  redis_data:
