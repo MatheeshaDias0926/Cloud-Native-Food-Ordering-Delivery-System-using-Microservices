@@ -1,6 +1,26 @@
-version: "3.8"
-
 services:
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=Matheesha
+      - MONGO_INITDB_ROOT_PASSWORD=Matheesha
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    command: redis-server --requirepass admin123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
   api-gateway:
     build: ./api-gateway
     ports:
@@ -8,14 +28,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - FRONTEND_URL=http://localhost:3000
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      - user-service
-      - restaurant-service
-      - order-service
-      - delivery-service
-      - payment-service
-      - notification-service
+      - redis
     networks:
       - app-network
 
@@ -26,12 +42,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - JWT_EXPIRES_IN=24h
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
@@ -42,11 +56,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3002
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
@@ -57,11 +70,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3003
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
@@ -72,11 +84,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3004
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
@@ -87,12 +98,10 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
@@ -103,47 +112,16 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3006
-      - MONGODB_URI=mongodb://admin:admin123@mongo:27017/food-delivery?authSource=admin
-      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
-      - SMTP_HOST=smtp.gmail.com
-      - SMTP_PORT=587
-      - SMTP_USER=your-email@gmail.com
-      - SMTP_PASS=your-app-specific-password
+      - MONGODB_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/
+      - REDIS_URL=redis://:admin123@redis:6379
     depends_on:
-      mongo:
-        condition: service_healthy
+      - redis
     networks:
       - app-network
 
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=admin123
-    volumes:
-      - ./mongo/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    networks:
-      - app-network
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    command: redis-server --requirepass redis123
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
+volumes:
+  mongodb_data:
+  redis_data:
 
 networks:
   app-network:

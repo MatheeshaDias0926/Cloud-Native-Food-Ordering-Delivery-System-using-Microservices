@@ -1,7 +1,7 @@
 const User = require("../models/users");
 
-//importing bcrypt
-const bcrypt = require("bcrypt");
+//importing bcryptjs
+const bcrypt = require("bcryptjs");
 
 const validator = require("validator");
 //importing jsonwebtoken
@@ -104,7 +104,7 @@ const login = async (req, res, next) => {
   }
 
   //checking password and comare it with exist user's password in the db
-  const isPasswordCorrect = bcrypt.compareSync(password, loggeduser.password);
+  const isPasswordCorrect = await bcrypt.compare(password, loggeduser.password);
 
   //if password and email are invalid
   if (!isPasswordCorrect) {
@@ -195,7 +195,6 @@ const logout = (req, res, next) => {
 };
 
 //delete Acc
-
 const deleteUser = async (req, res) => {
   try {
     await User.findByIdAndDelete(req.userId);
