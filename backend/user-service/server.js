@@ -11,13 +11,58 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/api/user", userRoutes);
 
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// Database connection with retry mechanism
+const connectWithRetry = async () => {
+  const maxRetries = 5;
+  const retryDelay = 5000; // 5 seconds
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`User service running on port ${PORT}`));
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await mongoose.connect(process.env.MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+      });
+      console.log("Connected to MongoDB");
+      return;
+    } catch (err) {
+      console.error(`MongoDB connection attempt ${i + 1} failed:`, err);
+      if (i < maxRetries - 1) {
+        console.log(`Retrying in ${retryDelay / 1000} seconds...`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+      } else {
+        console.error("Failed to connect to MongoDB after maximum retries");
+        process.exit(1);
+      }
+    }
+  }
+};
+
+// Handle database disconnection
+mongoose.connection.on("disconnected", () => {
+  console.log("MongoDB disconnected. Attempting to reconnect...");
+  connectWithRetry();
+});
+
+// Handle database errors
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB error:", err);
+});
+
+// Start server after database connection
+const startServer = async () => {
+  try {
+    await connectWithRetry();
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+      console.log(`User service running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
+};
+
+startServer();

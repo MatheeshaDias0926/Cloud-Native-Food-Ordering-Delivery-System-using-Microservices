@@ -5,6 +5,7 @@ const compression = require("compression");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
@@ -16,12 +17,25 @@ app.use(compression());
 app.use(helmet());
 app.use(morgan("combined"));
 
-// Rate limiting
+// Rate limiting configuration
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
 });
+
+// Stricter rate limit for authentication endpoints
+const authLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // limit each IP to 5 failed login attempts per hour
+  message: "Too many login attempts, please try again later.",
+});
+
+// Apply rate limiting
 app.use(limiter);
+
+// Apply stricter rate limiting to auth routes
+app.use("/api/user-service/auth", authLimiter);
 
 // Service routes
 const services = {
@@ -55,9 +69,36 @@ Object.entries(services).forEach(([service, url]) => {
   );
 });
 
-// Health check endpoint
+// Health check endpoints
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "healthy" });
+});
+
+// Service health checks
+const checkServiceHealth = async (service, url) => {
+  try {
+    const response = await axios.get(`${url}/health`);
+    return response.status === 200;
+  } catch (error) {
+    console.error(`Health check failed for ${service}:`, error.message);
+    return false;
+  }
+};
+
+app.get("/health/status", async (req, res) => {
+  const healthStatus = {
+    apiGateway: true,
+    services: {},
+  };
+
+  for (const [service, url] of Object.entries(services)) {
+    healthStatus.services[service] = await checkServiceHealth(service, url);
+  }
+
+  const allServicesHealthy = Object.values(healthStatus.services).every(
+    (status) => status
+  );
+  res.status(allServicesHealthy ? 200 : 503).json(healthStatus);
 });
 
 // Error handling middleware

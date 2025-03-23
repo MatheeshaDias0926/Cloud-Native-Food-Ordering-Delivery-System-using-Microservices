@@ -27,8 +27,9 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
+      - PORT=3001
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - mongo
 
@@ -38,8 +39,9 @@ services:
       - "3002:3002"
     environment:
       - NODE_ENV=development
+      - PORT=3002
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - mongo
 
@@ -49,8 +51,9 @@ services:
       - "3003:3003"
     environment:
       - NODE_ENV=development
+      - PORT=3003
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - mongo
 
@@ -60,8 +63,9 @@ services:
       - "3004:3004"
     environment:
       - NODE_ENV=development
+      - PORT=3004
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - mongo
 
@@ -71,9 +75,10 @@ services:
       - "3005:3005"
     environment:
       - NODE_ENV=development
+      - PORT=3005
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
-      - STRIPE_SECRET_KEY=your_stripe_secret_key
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
     depends_on:
       - mongo
 
@@ -83,12 +88,13 @@ services:
       - "3006:3006"
     environment:
       - NODE_ENV=development
+      - PORT=3006
       - MONGODB_URI=mongodb://mongo:27017/fooddelivery
-      - JWT_SECRET=your_jwt_secret
-      - SMTP_HOST=your_smtp_host
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=587
-      - SMTP_USER=your_smtp_user
-      - SMTP_PASS=your_smtp_password
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
     depends_on:
       - mongo
 
@@ -98,6 +104,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
 
   redis:
     image: redis:latest
@@ -105,6 +114,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    command: redis-server --requirepass ${REDIS_PASSWORD}
 
 volumes:
   mongodb_data:

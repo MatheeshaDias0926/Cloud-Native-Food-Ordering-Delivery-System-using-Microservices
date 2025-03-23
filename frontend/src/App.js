@@ -2,12 +2,8 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Provider } from "react-redux";
-import { store } from "./store";
-import PrivateRoute from "./components/routes/PrivateRoute";
+import { useSelector } from "react-redux";
 import Layout from "./components/layout/Layout";
-
-// Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -20,6 +16,9 @@ import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import RestaurantManagement from "./pages/RestaurantManagement";
 import DeliveryManagement from "./pages/DeliveryManagement";
+import AdminDashboard from "./pages/AdminDashboard";
+import RoleBasedRoute from "./components/auth/RoleBasedRoute";
+import ServiceDashboard from "./pages/ServiceDashboard";
 
 const theme = createTheme({
   palette: {
@@ -59,88 +58,99 @@ const theme = createTheme({
   },
 });
 
-function App() {
+const App = () => {
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
   return (
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <Router>
-          <Layout>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/restaurants" element={<RestaurantList />} />
-              <Route path="/restaurants/:id" element={<RestaurantDetail />} />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <Layout>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/restaurants" element={<RestaurantList />} />
+            <Route path="/restaurants/:id" element={<RestaurantDetail />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/cart"
-                element={
-                  <PrivateRoute>
-                    <Cart />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/checkout"
-                element={
-                  <PrivateRoute>
-                    <Checkout />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <PrivateRoute>
-                    <OrderHistory />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
-                    <Profile />
-                  </PrivateRoute>
-                }
-              />
+            {/* Protected Routes - Customer */}
+            <Route
+              path="/cart"
+              element={
+                <RoleBasedRoute allowedRoles={["customer"]}>
+                  <Cart />
+                </RoleBasedRoute>
+              }
+            />
+            <Route
+              path="/checkout"
+              element={
+                <RoleBasedRoute allowedRoles={["customer"]}>
+                  <Checkout />
+                </RoleBasedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <RoleBasedRoute allowedRoles={["customer"]}>
+                  <OrderHistory />
+                </RoleBasedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <RoleBasedRoute allowedRoles={["customer"]}>
+                  <Profile />
+                </RoleBasedRoute>
+              }
+            />
 
-              {/* Restaurant Owner Routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute allowedRoles={["seller", "admin"]}>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/restaurant-management"
-                element={
-                  <PrivateRoute allowedRoles={["seller", "admin"]}>
-                    <RestaurantManagement />
-                  </PrivateRoute>
-                }
-              />
+            {/* Protected Routes - Restaurant Admin */}
+            <Route
+              path="/restaurant-management"
+              element={
+                <RoleBasedRoute allowedRoles={["restaurant_admin"]}>
+                  <RestaurantManagement />
+                </RoleBasedRoute>
+              }
+            />
 
-              {/* Delivery Personnel Routes */}
-              <Route
-                path="/delivery-management"
-                element={
-                  <PrivateRoute allowedRoles={["delivery_personnel"]}>
-                    <DeliveryManagement />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </Layout>
-        </Router>
-      </ThemeProvider>
-    </Provider>
+            {/* Protected Routes - Delivery Personnel */}
+            <Route
+              path="/delivery-management"
+              element={
+                <RoleBasedRoute allowedRoles={["delivery_personnel"]}>
+                  <DeliveryManagement />
+                </RoleBasedRoute>
+              }
+            />
+
+            {/* Protected Routes - Admin */}
+            <Route
+              path="/admin"
+              element={
+                <RoleBasedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </RoleBasedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/services"
+              element={
+                <RoleBasedRoute allowedRoles={["admin"]}>
+                  <ServiceDashboard />
+                </RoleBasedRoute>
+              }
+            />
+          </Routes>
+        </Layout>
+      </Router>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
