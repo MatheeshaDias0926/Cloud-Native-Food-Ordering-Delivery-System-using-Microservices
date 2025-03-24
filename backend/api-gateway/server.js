@@ -96,10 +96,27 @@ Object.entries(services).forEach(([service, url]) => {
       target: url,
       changeOrigin: true,
       pathRewrite: {
-        [`^/api/${service}`]: "",
+        [`^/api/${service}`]: service === "user-service" ? "/api/user" : "",
+      },
+      onProxyReq: (proxyReq, req, res) => {
+        console.log(`Proxying ${req.method} ${req.url} to ${url}`);
+        // Reset circuit breaker on successful request
+        if (circuitBreaker.state === "OPEN") {
+          const now = Date.now();
+          if (
+            now - circuitBreaker.lastFailureTime >=
+            circuitBreaker.resetTimeout
+          ) {
+            circuitBreaker.state = "CLOSED";
+            circuitBreaker.failures = 0;
+          }
+        }
       },
       onError: (err, req, res) => {
         console.error(`Proxy Error: ${err.message}`);
+        console.error(`Request URL: ${req.url}`);
+        console.error(`Request Method: ${req.method}`);
+        console.error(`Request Body:`, req.body);
 
         // Circuit breaker logic
         if (circuitBreaker.state === "CLOSED") {
@@ -114,19 +131,6 @@ Object.entries(services).forEach(([service, url]) => {
           error: "Service temporarily unavailable",
           message: "Circuit breaker is open",
         });
-      },
-      onProxyReq: (proxyReq) => {
-        // Reset circuit breaker on successful request
-        if (circuitBreaker.state === "OPEN") {
-          const now = Date.now();
-          if (
-            now - circuitBreaker.lastFailureTime >=
-            circuitBreaker.resetTimeout
-          ) {
-            circuitBreaker.state = "CLOSED";
-            circuitBreaker.failures = 0;
-          }
-        }
       },
     })
   );
