@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
+import { createOrder } from "../services/orders";
 import "./Cart.css";
 
 const Cart = () => {
@@ -8,10 +9,57 @@ const Cart = () => {
   const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
     useCart();
   const cartItems = cart?.items || [];
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
-  const handleCheckout = () => {
-    // TODO: Implement checkout logic
-    navigate("/checkout");
+  const handleCheckout = async () => {
+    if (!cartItems || cartItems.length === 0) {
+      setError("Your cart is empty");
+      return;
+    }
+
+    if (!deliveryAddress.trim()) {
+      setError("Please enter a delivery address");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Prepare order data
+      const orderData = {
+        restaurant: cart.restaurant._id,
+        items: cartItems.map((item) => ({
+          menuItem: item._id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        totalAmount: getCartTotal() + 5, // Including delivery fee
+        deliveryFee: 5,
+        status: "pending",
+        deliveryAddress: deliveryAddress.trim(),
+      };
+
+      // Create the order
+      const response = await createOrder(orderData);
+
+      // Clear the cart after successful order creation
+      clearCart();
+
+      // Navigate to order confirmation page
+      navigate(`/orders/${response.data._id}`);
+    } catch (err) {
+      console.error("Error creating order:", err);
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to create order. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!cartItems || cartItems.length === 0) {
@@ -61,6 +109,8 @@ const Cart = () => {
           )}
         </div>
 
+        {error && <div className="error-message">{error}</div>}
+
         <div className="cart-items">
           {cartItems.map((item) => (
             <div key={item._id} className="cart-item">
@@ -105,6 +155,17 @@ const Cart = () => {
           ))}
         </div>
 
+        <div className="delivery-address">
+          <h3>Delivery Address</h3>
+          <textarea
+            value={deliveryAddress}
+            onChange={(e) => setDeliveryAddress(e.target.value)}
+            placeholder="Enter your delivery address"
+            className="address-input"
+            rows={3}
+          />
+        </div>
+
         <div className="cart-summary">
           <h2 className="summary-title">Order Summary</h2>
           <div className="summary-row">
@@ -121,8 +182,12 @@ const Cart = () => {
               ${(getCartTotal() + 5).toFixed(2)}
             </span>
           </div>
-          <button className="checkout-button" onClick={handleCheckout}>
-            Proceed to Checkout
+          <button
+            className="checkout-button"
+            onClick={handleCheckout}
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Proceed to Checkout"}
           </button>
         </div>
       </div>

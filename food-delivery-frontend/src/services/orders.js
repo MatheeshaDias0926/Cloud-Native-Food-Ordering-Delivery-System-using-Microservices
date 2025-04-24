@@ -1,67 +1,56 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api/v1";
+import api from "./api";
 
 // Get all orders for the current user
 export const getOrders = async () => {
   try {
-    const response = await axios.get(`${API_URL}/orders`, {
-      withCredentials: true,
-    });
+    const response = await api.get("/orders");
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error("Error fetching orders:", error);
+    throw error;
   }
 };
 
 // Get a single order by ID
-export const getOrder = async (orderId) => {
+export const getOrderById = async (orderId) => {
   try {
-    const response = await axios.get(`${API_URL}/orders/${orderId}`, {
-      withCredentials: true,
-    });
+    const response = await api.get(`/orders/${orderId}`);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error("Error fetching order:", error);
+    throw error;
   }
 };
 
 // Create a new order
 export const createOrder = async (orderData) => {
   try {
-    const response = await axios.post(`${API_URL}/orders`, orderData, {
-      withCredentials: true,
-    });
+    const response = await api.post("/orders", orderData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error("Error creating order:", error);
+    throw error;
   }
 };
 
 // Update order status
 export const updateOrderStatus = async (orderId, status) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/orders/${orderId}/status`,
-      { status },
-      { withCredentials: true }
-    );
+    const response = await api.put(`/orders/${orderId}/status`, { status });
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error("Error updating order status:", error);
+    throw error;
   }
 };
 
 // Cancel order
 export const cancelOrder = async (orderId) => {
   try {
-    const response = await axios.put(
-      `${API_URL}/orders/${orderId}/cancel`,
-      {},
-      { withCredentials: true }
-    );
+    const response = await api.put(`/orders/${orderId}/cancel`, {});
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error("Error canceling order:", error);
+    throw error;
   }
 };

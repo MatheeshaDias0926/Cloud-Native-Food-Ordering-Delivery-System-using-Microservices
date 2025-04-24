@@ -10,11 +10,12 @@ export const CartProvider = ({ children }) => {
         ? JSON.parse(savedCart)
         : { items: [], restaurant: null };
     } catch (error) {
-      console.error("Error parsing cart from localStorage:", error);
+      console.error("Error loading cart from localStorage:", error);
       return { items: [], restaurant: null };
     }
   });
 
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
     try {
       localStorage.setItem("cart", JSON.stringify(cart));
@@ -32,8 +33,9 @@ export const CartProvider = ({ children }) => {
     setCart((prev) => {
       const currentCart = prev || { items: [], restaurant: null };
 
+      // If adding from a different restaurant, clear the cart
       if (
-        !currentCart.restaurant ||
+        currentCart.restaurant &&
         currentCart.restaurant._id !== restaurant._id
       ) {
         return {
@@ -42,6 +44,15 @@ export const CartProvider = ({ children }) => {
         };
       }
 
+      // If no restaurant set yet, set it
+      if (!currentCart.restaurant) {
+        return {
+          restaurant,
+          items: [{ ...item, quantity: 1 }],
+        };
+      }
+
+      // Check if item already exists in cart
       const existingItem = currentCart.items.find((i) => i._id === item._id);
       if (existingItem) {
         return {
@@ -52,6 +63,7 @@ export const CartProvider = ({ children }) => {
         };
       }
 
+      // Add new item
       return {
         ...currentCart,
         items: [...currentCart.items, { ...item, quantity: 1 }],
@@ -65,9 +77,16 @@ export const CartProvider = ({ children }) => {
         return { items: [], restaurant: null };
       }
 
+      const updatedItems = prev.items.filter((item) => item._id !== itemId);
+
+      // If no items left, clear restaurant
+      if (updatedItems.length === 0) {
+        return { items: [], restaurant: null };
+      }
+
       return {
         ...prev,
-        items: prev.items.filter((item) => item._id !== itemId),
+        items: updatedItems,
       };
     });
   };
@@ -96,17 +115,26 @@ export const CartProvider = ({ children }) => {
     setCart({ items: [], restaurant: null });
   };
 
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
+  const getCartTotal = () => {
+    return cart.items.reduce(
+      (total, item) => total + (item.price || 0) * (item.quantity || 0),
+      0
+    );
+  };
+
+  const getItemCount = () => {
+    return cart.items.reduce((count, item) => count + (item.quantity || 0), 0);
+  };
+
+  const value = {
+    cart,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getItemCount,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

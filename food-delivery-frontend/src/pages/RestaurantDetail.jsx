@@ -6,7 +6,7 @@ import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
-  const cart = useCart();
+  const { addToCart } = useCart();
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,14 +41,18 @@ const RestaurantDetail = () => {
         throw new Error("Invalid item data");
       }
 
+      if (!restaurant || !restaurant._id) {
+        throw new Error("Invalid restaurant data");
+      }
+
       // Add restaurant info to the item
       const cartItem = {
         ...item,
-        restaurantName: restaurant?.name || "Unknown Restaurant",
-        restaurantId: restaurant?._id,
+        restaurantName: restaurant.name,
+        restaurantId: restaurant._id,
       };
 
-      cart.addToCart(cartItem);
+      addToCart(cartItem, restaurant);
       setAddToCartMessage(`${item.name} added to cart!`);
       setTimeout(() => setAddToCartMessage(""), 2000);
     } catch (err) {

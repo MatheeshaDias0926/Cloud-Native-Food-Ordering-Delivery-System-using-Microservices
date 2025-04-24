@@ -15,6 +15,7 @@ import Register from "./pages/Register";
 import RestaurantList from "./pages/RestaurantList";
 import RestaurantDetail from "./pages/RestaurantDetail";
 import Cart from "./pages/Cart";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import Orders from "./pages/Orders";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import DeliveryDashboard from "./pages/DeliveryDashboard";
