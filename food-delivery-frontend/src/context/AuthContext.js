@@ -1,104 +1,85 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { login, register, logout, getCurrentUser } from "../services/auth";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import api from "../services/api";
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Only check authentication if we haven't done so already
-    if (!authChecked) {
-      checkUserLoggedIn();
-    }
-  }, [authChecked]);
+    checkAuth();
+  }, []);
 
-  const checkUserLoggedIn = async () => {
+  const checkAuth = async () => {
     try {
-      // Check if we have a token first to avoid unnecessary API calls
       const token = localStorage.getItem("token");
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        setAuthChecked(true);
-        return;
+      if (token) {
+        const response = await api.getCurrentUser();
+        setUser(response.data);
       }
-
-      const userData = await getCurrentUser();
-      setUser(userData);
-    } catch (err) {
-      console.error("Auth check error:", err);
-      setUser(null);
-      // Clear invalid token
+    } catch (error) {
+      console.error("Auth check failed:", error);
       localStorage.removeItem("token");
+      localStorage.removeItem("userType");
     } finally {
       setLoading(false);
-      setAuthChecked(true);
     }
   };
 
-  const loginUser = async (email, password) => {
+  const login = async (email, password, userType) => {
     try {
       setError(null);
-      const userData = await login({ email, password });
-      setUser(userData);
-      return userData;
-    } catch (err) {
-      setError(err.response?.data?.message || "An error occurred during login");
-      throw err;
+      const response = await api.login(email, password, userType);
+      const { token, user: userData } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userType", userType);
+
+      setUser({ ...userData, userType });
+      return response.data;
+    } catch (error) {
+      setError(error.response?.data?.message || "Login failed");
+      throw error;
     }
   };
 
-  const registerUser = async (userData) => {
+  const register = async (userData) => {
     try {
       setError(null);
-      const newUser = await register(userData);
-      setUser(newUser);
-      return newUser;
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "An error occurred during registration"
-      );
-      throw err;
+      const response = await api.register(userData);
+      const { token, user: newUser } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("userType", newUser.role);
+
+      setUser({ ...newUser, userType: newUser.role });
+      return response.data;
+    } catch (error) {
+      setError(error.response?.data?.message || "Registration failed");
+      throw error;
     }
   };
 
-  const logoutUser = () => {
-    console.log("Logging out user...");
-
-    // Call the logout function from auth service
-    logout();
-
-    // Clear local storage
+  const logout = () => {
     localStorage.removeItem("token");
-
-    // Reset user state
+    localStorage.removeItem("userType");
     setUser(null);
-
-    // Reset auth checked state to allow re-checking on next login
-    setAuthChecked(false);
-
-    // Force a page reload to clear any cached state
-    window.location.href = "/login";
+    setError(null);
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        loginUser,
-        registerUser,
-        logoutUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    register,
+    logout,
+    isAuthenticated: !!user,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
@@ -109,4 +90,4 @@ export const useAuth = () => {
   return context;
 };
 
-export { AuthContext };
+export default AuthContext;

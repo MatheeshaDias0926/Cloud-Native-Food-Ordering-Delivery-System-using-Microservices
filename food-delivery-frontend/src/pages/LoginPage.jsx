@@ -5,16 +5,28 @@ import LoginForm from "../components/auth/LoginForm";
 import "./LoginPage.css";
 
 const LoginPage = () => {
-  const { loginUser } = useAuth();
-  const navigate = useNavigate();
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (email, password, userType) => {
     try {
-      await loginUser(email, password);
-      navigate("/restaurants");
+      setError("");
+      const response = await login(email, password, userType);
+
+      // Redirect based on user type
+      switch (userType) {
+        case "restaurant_owner":
+          navigate("/restaurant/dashboard");
+          break;
+        case "delivery_person":
+          navigate("/delivery/dashboard");
+          break;
+        default:
+          navigate("/restaurants");
+      }
     } catch (err) {
-      setError("Invalid email or password");
+      setError(err.response?.data?.message || "Failed to login");
     }
   };
 

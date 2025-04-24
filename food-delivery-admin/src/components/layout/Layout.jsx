@@ -27,17 +27,25 @@ import {
   LocalShipping,
   Logout,
   AccountCircle,
+  RestaurantMenu,
 } from "@mui/icons-material";
-import { logout } from "../../store/slices/authSlice";
+import { logoutUser } from "../../store/slices/authSlice";
 
 const drawerWidth = 240;
 
-const menuItems = [
+// Define menu items for different roles
+const adminMenuItems = [
   { text: "Dashboard", icon: <Dashboard />, path: "/" },
   { text: "Users", icon: <People />, path: "/users" },
   { text: "Restaurants", icon: <Restaurant />, path: "/restaurants" },
   { text: "Orders", icon: <ShoppingCart />, path: "/orders" },
   { text: "Deliveries", icon: <LocalShipping />, path: "/deliveries" },
+];
+
+const restaurantMenuItems = [
+  { text: "Dashboard", icon: <Dashboard />, path: "/" },
+  { text: "Menu Items", icon: <RestaurantMenu />, path: "/menu" },
+  { text: "Orders", icon: <ShoppingCart />, path: "/orders" },
 ];
 
 const Layout = () => {
@@ -46,6 +54,10 @@ const Layout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+
+  // Determine which menu items to show based on user role
+  const menuItems =
+    user?.role === "admin" ? adminMenuItems : restaurantMenuItems;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -60,7 +72,7 @@ const Layout = () => {
   };
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser());
     navigate("/login");
   };
 
@@ -68,7 +80,7 @@ const Layout = () => {
     <div>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Admin Panel
+          {user?.role === "admin" ? "Admin Panel" : "Restaurant Dashboard"}
         </Typography>
       </Toolbar>
       <Divider />
@@ -111,7 +123,9 @@ const Layout = () => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Food Delivery Admin
+            {user?.role === "admin"
+              ? "Food Delivery Admin"
+              : `${user?.restaurantName || "Restaurant"} Dashboard`}
           </Typography>
           <IconButton
             size="large"

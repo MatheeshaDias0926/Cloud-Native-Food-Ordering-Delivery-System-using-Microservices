@@ -21,12 +21,17 @@ import {
   Alert,
   Chip,
 } from "@mui/material";
-import { Edit as EditIcon, Delete as DeleteIcon } from "@mui/icons-material";
+import {
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  RestaurantMenu as MenuIcon,
+} from "@mui/icons-material";
 import {
   fetchRestaurants,
   updateRestaurantDetails,
   removeRestaurant,
 } from "../store/slices/restaurantsSlice";
+import { useNavigate } from "react-router-dom";
 
 const Restaurants = () => {
   const dispatch = useDispatch();
@@ -43,6 +48,7 @@ const Restaurants = () => {
     cuisine: "",
     isActive: true,
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(fetchRestaurants());
@@ -90,6 +96,10 @@ const Restaurants = () => {
       );
       handleClose();
     }
+  };
+
+  const handleManageMenu = (restaurantId) => {
+    navigate(`/restaurants/${restaurantId}/menu`);
   };
 
   if (loading) {
@@ -151,6 +161,12 @@ const Restaurants = () => {
                     onClick={() => handleEdit(restaurant)}
                   >
                     <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="success"
+                    onClick={() => handleManageMenu(restaurant._id)}
+                  >
+                    <MenuIcon />
                   </IconButton>
                   <IconButton
                     color="error"

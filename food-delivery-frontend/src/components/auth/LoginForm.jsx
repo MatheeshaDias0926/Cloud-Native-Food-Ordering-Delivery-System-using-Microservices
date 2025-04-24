@@ -5,10 +5,11 @@ import "./LoginForm.css";
 const LoginForm = ({ onSubmit, error }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState("customer"); // Default to customer
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(email, password);
+    onSubmit(email, password, userType);
   };
 
   return (
@@ -32,6 +33,18 @@ const LoginForm = ({ onSubmit, error }) => {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+      </div>
+      <div className="form-group">
+        <label>User Type</label>
+        <select
+          value={userType}
+          onChange={(e) => setUserType(e.target.value)}
+          required
+        >
+          <option value="customer">Customer</option>
+          <option value="restaurant_owner">Restaurant Owner</option>
+          <option value="delivery_person">Delivery Person</option>
+        </select>
       </div>
       <button type="submit" className="login-button">
         Login

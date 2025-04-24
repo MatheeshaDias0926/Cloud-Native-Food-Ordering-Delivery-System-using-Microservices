@@ -89,27 +89,30 @@ const OrdersPage = () => {
               </div>
               <div className="order-details">
                 <p>
-                  <strong>Restaurant:</strong> {order.restaurant.name}
+                  <strong>Restaurant:</strong>{" "}
+                  {order.restaurant?.name || "Unknown Restaurant"}
                 </p>
                 <p>
                   <strong>Date:</strong>{" "}
                   {new Date(order.createdAt).toLocaleDateString()}
                 </p>
                 <p>
-                  <strong>Total:</strong> ${order.total.toFixed(2)}
+                  <strong>Total:</strong> $
+                  {order.totalAmount?.toFixed(2) || "0.00"}
                 </p>
               </div>
               <div className="order-items">
                 <h4>Items:</h4>
                 <ul>
-                  {order.items.map((item, index) => (
+                  {order.items?.map((item, index) => (
                     <li key={index}>
-                      {item.quantity}x {item.name} - ${item.price.toFixed(2)}
+                      {item.quantity}x {item.name} - $
+                      {item.price?.toFixed(2) || "0.00"}
                     </li>
-                  ))}
+                  )) || <li>No items found</li>}
                 </ul>
               </div>
-              {order.status.toLowerCase() === "pending" && (
+              {order.status?.toLowerCase() === "pending" && (
                 <button
                   className="cancel-button"
                   onClick={() => handleCancelOrder(order._id)}
