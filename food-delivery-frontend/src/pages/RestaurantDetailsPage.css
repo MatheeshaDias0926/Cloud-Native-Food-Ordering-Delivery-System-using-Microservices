@@ -1,0 +1,79 @@
+.restaurant-details-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.restaurant-header {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-image {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.restaurant-info {
+  flex: 1;
+}
+
+.restaurant-info h1 {
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.cuisine-type {
+  color: #666;
+  margin: 0 0 1rem;
+}
+
+.restaurant-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rating,
+.delivery-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+}
+
+.description {
+  color: #666;
+  line-height: 1.5;
+}
+
+.menu-section {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu-section h2 {
+  margin: 0 0 1.5rem;
+  color: #333;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  color: #ff4444;
+}

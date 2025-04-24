@@ -45,16 +45,27 @@ exports.register = async (req, res, next) => {
       expiresIn: process.env.JWT_EXPIRE,
     });
 
-    // Send welcome email
-    await sendEmail({
-      email: user.email,
-      subject: "Welcome to FoodDelivery",
-      message: `Hi ${user.name},\n\nWelcome to our platform!`,
-    });
+    // Try to send welcome email, but don't block registration if it fails
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Welcome to FoodDelivery",
+        message: `Hi ${user.name},\n\nWelcome to our platform!`,
+      });
+    } catch (emailErr) {
+      console.error("Failed to send welcome email:", emailErr);
+      // Continue with registration even if email fails
+    }
 
     res.status(201).json({
       success: true,
       token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
     next(err);
@@ -86,6 +97,12 @@ exports.login = async (req, res, next) => {
     res.status(200).json({
       success: true,
       token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
     next(err);

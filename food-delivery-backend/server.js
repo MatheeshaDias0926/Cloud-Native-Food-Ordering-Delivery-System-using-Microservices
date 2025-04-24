@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
 const colors = require("colors");
+const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -20,6 +21,9 @@ const deliveryRoutes = require("./routes/deliveryRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
+
+// Enable CORS - more permissive for development
+app.use(cors());
 
 // Body parser
 app.use(express.json());
