@@ -5,13 +5,14 @@ import LoginForm from "../components/auth/LoginForm";
 import "./LoginPage.css";
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const handleLogin = async (email, password) => {
     try {
-      await login(email, password);
+      await loginUser(email, password);
+      navigate("/restaurants");
     } catch (err) {
       setError("Invalid email or password");
     }

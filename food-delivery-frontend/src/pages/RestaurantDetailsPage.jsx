@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import MenuList from "../components/restaurants/MenuList";
 import "./RestaurantDetailsPage.css";
 
-const RestaurantDetailsPage = () => {
+const RestaurantDetailPage = () => {
   const { id } = useParams();
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -175,4 +175,4 @@ const RestaurantDetailsPage = () => {
   );
 };
 
-export default RestaurantDetailsPage;
+export default RestaurantDetailPage;

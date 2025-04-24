@@ -23,7 +23,12 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const app = express();
 
 // Enable CORS - more permissive for development
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+    credentials: true,
+  })
+);
 
 // Body parser
 app.use(express.json());

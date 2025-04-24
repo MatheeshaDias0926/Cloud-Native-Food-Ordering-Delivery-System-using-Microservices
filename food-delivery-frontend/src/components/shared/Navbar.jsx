@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import "./Navbar.css";
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, logoutUser } = useAuth();
 
   return (
     <nav className="navbar">
@@ -16,7 +16,9 @@ const Navbar = () => {
             <Link to="/restaurants">Restaurants</Link>
             <Link to="/cart">Cart</Link>
             <Link to="/orders">Orders</Link>
-            <button onClick={logout}>Logout</button>
+            <button onClick={logoutUser} className="logout-btn">
+              Logout
+            </button>
           </>
         ) : (
           <>

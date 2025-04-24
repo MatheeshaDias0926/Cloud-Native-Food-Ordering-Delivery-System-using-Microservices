@@ -5,13 +5,25 @@ import RegisterForm from "../components/auth/RegisterForm";
 import "./RegisterPage.css";
 
 const RegisterPage = () => {
-  const { register } = useAuth();
+  const { registerUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
   const handleRegister = async (name, email, password, role) => {
     try {
-      await register(name, email, password, role);
+      const userData = {
+        name,
+        email,
+        password,
+        role,
+        ...(role === "restaurant" && {
+          restaurantName: "My Restaurant",
+          cuisineType: "General",
+        }),
+      };
+
+      await registerUser(userData);
+      navigate("/restaurants");
     } catch (err) {
       setError("Registration failed. Please try again.");
     }
