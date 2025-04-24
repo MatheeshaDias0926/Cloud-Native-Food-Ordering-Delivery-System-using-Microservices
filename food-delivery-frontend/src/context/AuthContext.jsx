@@ -14,53 +14,42 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem("token");
-      const userData = localStorage.getItem("user");
-
-      if (token && userData) {
-        try {
-          const response = await api.getCurrentUser();
-          setUser(response.data.data);
-        } catch (err) {
-          console.error("Error fetching current user:", err);
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const response = await api.get("/auth/me");
+          if (response.data.success) {
+            setUser(response.data.data);
+          } else {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+          }
         }
+      } catch (err) {
+        console.error("Error fetching current user:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
   }, []);
 
-  const register = async (userData) => {
-    try {
-      setError(null);
-      const response = await api.register(userData);
-      const { token, user } = response.data;
-
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
-
-      return user;
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Registration failed";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    }
-  };
-
   const login = async (credentials) => {
     try {
       setError(null);
-      const response = await api.login(credentials);
+      const response = await api.post("/auth/login", credentials);
       const { token, user } = response.data;
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
 
+      // Set the token in axios defaults
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      setUser(user);
       return user;
     } catch (err) {
       const errorMessage = err.response?.data?.message || "Login failed";
@@ -69,9 +58,32 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (userData) => {
+    try {
+      setError(null);
+      const response = await api.post("/auth/register", userData);
+      const { token, user } = response.data;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Set the token in axios defaults
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      setUser(user);
+      return user;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Registration failed";
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // Remove token from axios defaults
+    delete api.defaults.headers.common["Authorization"];
     setUser(null);
     setError(null);
   };

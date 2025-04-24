@@ -1,15 +1,13 @@
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/v1";
+const API_URL = "http://localhost:5000/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true,
 });
 
-// Request interceptor
+// Add request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -23,7 +21,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// Add response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {

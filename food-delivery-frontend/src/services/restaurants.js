@@ -1,25 +1,9 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api/v1";
-
-// Configure axios defaults
-axios.defaults.withCredentials = true;
-
-// Add token to requests if available
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import api from "./api";
 
 // Get all restaurants
 export const getRestaurants = async () => {
   try {
-    const response = await axios.get(`${API_URL}/restaurants`, {
-      withCredentials: true,
-    });
+    const response = await api.get("/restaurants");
     return response.data;
   } catch (error) {
     console.error(
@@ -33,9 +17,7 @@ export const getRestaurants = async () => {
 // Get a single restaurant by ID
 export const getRestaurantById = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/restaurants/${id}`, {
-      withCredentials: true,
-    });
+    const response = await api.get(`/restaurants/${id}`);
     return response.data;
   } catch (error) {
     console.error(
@@ -49,12 +31,7 @@ export const getRestaurantById = async (id) => {
 // Get menu items for a restaurant
 export const getMenuItems = async (restaurantId) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/restaurants/${restaurantId}/menu`,
-      {
-        withCredentials: true,
-      }
-    );
+    const response = await api.get(`/restaurants/${restaurantId}/menu`);
     return response.data;
   } catch (error) {
     console.error(
@@ -68,8 +45,8 @@ export const getMenuItems = async (restaurantId) => {
 // Get restaurants in radius
 export const getRestaurantsInRadius = async (zipcode, distance) => {
   try {
-    const response = await axios.get(
-      `${API_URL}/restaurants/radius/${zipcode}/${distance}`,
+    const response = await api.get(
+      `/restaurants/radius/${zipcode}/${distance}`,
       {
         withCredentials: true,
       }
@@ -78,6 +55,60 @@ export const getRestaurantsInRadius = async (zipcode, distance) => {
   } catch (error) {
     console.error(
       "Error fetching restaurants in radius:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// Create a new menu item
+export const createMenuItem = async (restaurantId, menuItemData) => {
+  try {
+    const response = await api.post(
+      `/restaurants/${restaurantId}/menu`,
+      menuItemData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error creating menu item:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// Update a menu item
+export const updateMenuItem = async (
+  restaurantId,
+  menuItemId,
+  menuItemData
+) => {
+  try {
+    const response = await api.put(
+      `/restaurants/${restaurantId}/menu/${menuItemId}`,
+      menuItemData
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error updating menu item:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+// Delete a menu item
+export const deleteMenuItem = async (restaurantId, menuItemId) => {
+  try {
+    const response = await api.delete(
+      `/restaurants/${restaurantId}/menu/${menuItemId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error deleting menu item:",
       error.response?.data || error.message
     );
     throw error;
