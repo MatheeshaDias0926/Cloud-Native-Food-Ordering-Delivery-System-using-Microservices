@@ -6,19 +6,20 @@ import "./RestaurantDetail.css";
 
 const RestaurantDetail = () => {
   const { id } = useParams();
-  const { addToCart } = useCart();
+  const cart = useCart();
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [addToCartMessage, setAddToCartMessage] = useState("");
 
   useEffect(() => {
     const fetchRestaurantData = async () => {
       try {
         const [restaurantResponse, menuResponse] = await Promise.all([
-          api.getRestaurant(id),
-          api.getRestaurantMenu(id),
+          api.getRestaurantById(id),
+          api.getMenuItems(id),
         ]);
         setRestaurant(restaurantResponse.data.data);
         setMenuItems(menuResponse.data.data || []);
@@ -32,6 +33,30 @@ const RestaurantDetail = () => {
 
     fetchRestaurantData();
   }, [id]);
+
+  const handleAddToCart = (item) => {
+    try {
+      // Validate item data
+      if (!item || !item._id || !item.name || !item.price) {
+        throw new Error("Invalid item data");
+      }
+
+      // Add restaurant info to the item
+      const cartItem = {
+        ...item,
+        restaurantName: restaurant?.name || "Unknown Restaurant",
+        restaurantId: restaurant?._id,
+      };
+
+      cart.addToCart(cartItem);
+      setAddToCartMessage(`${item.name} added to cart!`);
+      setTimeout(() => setAddToCartMessage(""), 2000);
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      setAddToCartMessage("Failed to add item to cart");
+      setTimeout(() => setAddToCartMessage(""), 2000);
+    }
+  };
 
   const categories = [
     "all",
@@ -59,11 +84,15 @@ const RestaurantDetail = () => {
 
   return (
     <div className="restaurant-detail-container">
+      {addToCartMessage && (
+        <div className="add-to-cart-message">{addToCartMessage}</div>
+      )}
       <div
         className="restaurant-header"
         style={{
           backgroundImage: `url(${
-            restaurant.image || "https://via.placeholder.com/1200x400"
+            restaurant.image ||
+            "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&h=400&q=80"
           })`,
         }}
       >
@@ -151,7 +180,10 @@ const RestaurantDetail = () => {
           {filteredMenuItems.map((item) => (
             <div key={item._id} className="menu-item">
               <img
-                src={item.image || "https://via.placeholder.com/400x300"}
+                src={
+                  item.image ||
+                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=300&q=80"
+                }
                 alt={item.name}
                 className="menu-item-image"
               />
@@ -164,7 +196,7 @@ const RestaurantDetail = () => {
                   </span>
                   <button
                     className="add-to-cart-button"
-                    onClick={() => addToCart(item)}
+                    onClick={() => handleAddToCart(item)}
                   >
                     Add to Cart
                   </button>

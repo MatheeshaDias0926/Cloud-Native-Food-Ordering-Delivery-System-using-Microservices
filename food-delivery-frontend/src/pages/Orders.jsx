@@ -28,7 +28,7 @@ const Orders = () => {
   }, []);
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case "pending":
         return "status-pending";
       case "confirmed":
@@ -58,7 +58,7 @@ const Orders = () => {
     return <div className="error-message">{error}</div>;
   }
 
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     return (
       <div className="orders-container">
         <div className="orders-content">
@@ -104,7 +104,7 @@ const Orders = () => {
           {orders.map((order) => (
             <div key={order._id} className="order-card">
               <div className="order-header">
-                <div className="order-id">Order #{order._id.slice(-6)}</div>
+                <div className="order-id">Order #{order._id?.slice(-6)}</div>
                 <div className="order-date">
                   {new Date(order.createdAt).toLocaleDateString()}
                 </div>
@@ -117,29 +117,31 @@ const Orders = () => {
                 <div className="restaurant-info">
                   <img
                     src={
-                      order.restaurant.image ||
+                      order.restaurant?.image ||
                       "https://via.placeholder.com/64x64"
                     }
-                    alt={order.restaurant.name}
+                    alt={order.restaurant?.name || "Restaurant"}
                     className="restaurant-image"
                   />
                   <div className="restaurant-details">
-                    <h3 className="restaurant-name">{order.restaurant.name}</h3>
+                    <h3 className="restaurant-name">
+                      {order.restaurant?.name || "Unknown Restaurant"}
+                    </h3>
                     <p className="restaurant-address">
-                      {order.restaurant.address}
+                      {order.restaurant?.address || "Address not available"}
                     </p>
                   </div>
                 </div>
 
                 <div className="order-items">
-                  {order.items.map((item) => (
+                  {order.items?.map((item) => (
                     <div key={item._id} className="order-item">
                       <div className="item-details">
                         <span className="item-quantity">{item.quantity}x</span>
                         <span className="item-name">{item.name}</span>
                       </div>
                       <span className="item-price">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ${((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                       </span>
                     </div>
                   ))}
@@ -149,7 +151,7 @@ const Orders = () => {
                   <div className="summary-row">
                     <span className="summary-label">Subtotal</span>
                     <span className="summary-value">
-                      ${order.subtotal.toFixed(2)}
+                      ${(order.subtotal || 0).toFixed(2)}
                     </span>
                   </div>
                   <div className="summary-row">
@@ -159,7 +161,7 @@ const Orders = () => {
                   <div className="summary-row total">
                     <span className="summary-label">Total</span>
                     <span className="summary-value">
-                      ${(order.subtotal + 5).toFixed(2)}
+                      ${((order.subtotal || 0) + 5).toFixed(2)}
                     </span>
                   </div>
                 </div>

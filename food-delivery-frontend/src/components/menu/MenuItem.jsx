@@ -5,6 +5,14 @@ import "./MenuItem.css";
 const MenuItem = ({ item, restaurant }) => {
   const { addToCart } = useContext(CartContext);
 
+  const handleAddToCart = () => {
+    if (!item || !restaurant) {
+      console.error("Cannot add to cart: Missing item or restaurant data");
+      return;
+    }
+    addToCart(item, restaurant);
+  };
+
   return (
     <div className="menu-item">
       <div className="item-info">
@@ -12,10 +20,7 @@ const MenuItem = ({ item, restaurant }) => {
         <p>{item.description}</p>
         <p className="price">${item.price.toFixed(2)}</p>
       </div>
-      <button
-        onClick={() => addToCart(item, restaurant)}
-        className="add-to-cart"
-      >
+      <button onClick={handleAddToCart} className="add-to-cart">
         Add to Cart
       </button>
     </div>

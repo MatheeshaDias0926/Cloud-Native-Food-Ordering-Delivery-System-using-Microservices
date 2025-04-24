@@ -1,15 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
+import "./Cart.css";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const cart = useCart();
-  const cartItems = cart?.cartItems || [];
-  const removeFromCart = cart?.removeFromCart;
-  const updateQuantity = cart?.updateQuantity;
-  const getCartTotal = cart?.getCartTotal;
-  const clearCart = cart?.clearCart;
+  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
+    useCart();
+  const cartItems = cart?.items || [];
 
   const handleCheckout = () => {
     // TODO: Implement checkout logic
@@ -18,18 +16,29 @@ const Cart = () => {
 
   if (!cartItems || cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Your cart is empty
-            </h2>
-            <p className="mt-2 text-gray-600">
+      <div className="cart-container">
+        <div className="cart-content">
+          <div className="empty-cart">
+            <svg
+              className="empty-cart-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+              />
+            </svg>
+            <h2 className="empty-cart-title">Your cart is empty</h2>
+            <p className="empty-cart-text">
               Looks like you haven't added any items to your cart yet.
             </p>
             <button
               onClick={() => navigate("/restaurants")}
-              className="mt-6 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              className="browse-restaurants-button"
             >
               Browse Restaurants
             </button>
@@ -40,111 +49,81 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+    <div className="cart-container">
+      <div className="cart-content">
+        <div className="cart-header">
+          <h1 className="cart-title">Your Cart</h1>
+          {cart.restaurant && (
+            <div className="restaurant-info">
+              <h2>{cart.restaurant.name}</h2>
+              <p>{cart.restaurant.cuisineType}</p>
+            </div>
+          )}
+        </div>
 
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="divide-y divide-gray-200">
-            {cartItems.map((item) => (
-              <div key={item._id} className="p-6 flex items-center">
-                <img
-                  src={item.image || "https://via.placeholder.com/100x100"}
-                  alt={item.name}
-                  className="w-24 h-24 object-cover rounded-md"
-                />
-                <div className="ml-6 flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {item.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {item.restaurantName}
-                  </p>
-                  <div className="mt-2 flex items-center">
-                    <button
-                      onClick={() =>
-                        updateQuantity?.(
-                          item._id,
-                          Math.max(0, item.quantity - 1)
-                        )
-                      }
-                      className="p-1 rounded-md hover:bg-gray-100"
-                    >
-                      <svg
-                        className="h-5 w-5 text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M20 12H4"
-                        />
-                      </svg>
-                    </button>
-                    <span className="mx-4 text-gray-900">{item.quantity}</span>
-                    <button
-                      onClick={() =>
-                        updateQuantity?.(item._id, item.quantity + 1)
-                      }
-                      className="p-1 rounded-md hover:bg-gray-100"
-                    >
-                      <svg
-                        className="h-5 w-5 text-gray-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 4v16m8-8H4"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-                <div className="ml-6">
-                  <p className="text-lg font-medium text-gray-900">
-                    ${(item.price * item.quantity).toFixed(2)}
-                  </p>
+        <div className="cart-items">
+          {cartItems.map((item) => (
+            <div key={item._id} className="cart-item">
+              <img
+                src={item.image || "https://via.placeholder.com/100x100"}
+                alt={item.name}
+                className="cart-item-image"
+              />
+              <div className="cart-item-details">
+                <h3 className="cart-item-name">{item.name}</h3>
+                <p className="cart-item-restaurant">
+                  {cart.restaurant?.name || "Unknown Restaurant"}
+                </p>
+                <div className="quantity-controls">
                   <button
-                    onClick={() => removeFromCart?.(item._id)}
-                    className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    className="quantity-button"
+                    onClick={() =>
+                      updateQuantity(item._id, Math.max(0, item.quantity - 1))
+                    }
                   >
-                    Remove
+                    -
+                  </button>
+                  <span className="quantity-input">{item.quantity}</span>
+                  <button
+                    className="quantity-button"
+                    onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                  >
+                    +
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="p-6 bg-gray-50">
-            <div className="flex justify-between items-center">
-              <div>
-                <button
-                  onClick={() => clearCart?.()}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Clear Cart
-                </button>
+              <div className="cart-item-price">
+                ${((item.price || 0) * (item.quantity || 0)).toFixed(2)}
               </div>
-              <div className="text-right">
-                <p className="text-lg font-medium text-gray-900">
-                  Total: ${getCartTotal?.()?.toFixed(2) || "0.00"}
-                </p>
-                <button
-                  onClick={handleCheckout}
-                  className="mt-4 w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-                >
-                  Proceed to Checkout
-                </button>
-              </div>
+              <button
+                className="remove-button"
+                onClick={() => removeFromCart(item._id)}
+              >
+                Remove
+              </button>
             </div>
+          ))}
+        </div>
+
+        <div className="cart-summary">
+          <h2 className="summary-title">Order Summary</h2>
+          <div className="summary-row">
+            <span className="summary-label">Subtotal</span>
+            <span className="summary-value">${getCartTotal().toFixed(2)}</span>
           </div>
+          <div className="summary-row">
+            <span className="summary-label">Delivery Fee</span>
+            <span className="summary-value">$5.00</span>
+          </div>
+          <div className="summary-row total">
+            <span className="summary-label">Total</span>
+            <span className="summary-value">
+              ${(getCartTotal() + 5).toFixed(2)}
+            </span>
+          </div>
+          <button className="checkout-button" onClick={handleCheckout}>
+            Proceed to Checkout
+          </button>
         </div>
       </div>
     </div>
