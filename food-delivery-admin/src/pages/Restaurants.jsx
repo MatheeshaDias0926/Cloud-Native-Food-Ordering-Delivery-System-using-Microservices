@@ -46,6 +46,7 @@ const Restaurants = () => {
     address: "",
     phone: "",
     cuisine: "",
+    imageUrl: "",
     isActive: true,
   });
   const navigate = useNavigate();
@@ -62,6 +63,7 @@ const Restaurants = () => {
       address: restaurant.address,
       phone: restaurant.phone,
       cuisine: restaurant.cuisine,
+      imageUrl: restaurant.imageUrl,
       isActive: restaurant.isActive,
     });
     setOpenDialog(true);
@@ -82,6 +84,7 @@ const Restaurants = () => {
       address: "",
       phone: "",
       cuisine: "",
+      imageUrl: "",
       isActive: true,
     });
   };
@@ -228,6 +231,15 @@ const Restaurants = () => {
             value={editData.cuisine}
             onChange={(e) =>
               setEditData({ ...editData, cuisine: e.target.value })
+            }
+          />
+          <TextField
+            margin="dense"
+            label="Image URL"
+            fullWidth
+            value={editData.imageUrl}
+            onChange={(e) =>
+              setEditData({ ...editData, imageUrl: e.target.value })
             }
           />
         </DialogContent>

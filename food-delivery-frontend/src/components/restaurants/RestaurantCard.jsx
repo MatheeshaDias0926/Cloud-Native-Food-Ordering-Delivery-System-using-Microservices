@@ -1,12 +1,13 @@
 import "./RestaurantCard.css";
 
 const RestaurantCard = ({ restaurant }) => {
-  const { name, cuisineType, rating, deliveryTime, image } = restaurant;
+  const { name, cuisineType, rating, deliveryTime, imageUrl } = restaurant;
+  const defaultImage = "https://via.placeholder.com/300x200?text=Restaurant";
 
   return (
     <div className="restaurant-card">
       <div className="restaurant-image">
-        <img src={image} alt={name} />
+        <img src={imageUrl || defaultImage} alt={name} />
       </div>
       <div className="restaurant-info">
         <h3>{name}</h3>

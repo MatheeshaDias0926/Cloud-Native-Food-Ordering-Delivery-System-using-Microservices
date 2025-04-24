@@ -5,6 +5,21 @@ const RestaurantSchema = new mongoose.Schema({
   description: { type: String },
   cuisineType: { type: String },
   address: { type: String, required: true },
+  imageUrl: {
+    type: String,
+    validate: {
+      validator: function (v) {
+        if (!v) return true; // Allow empty values
+        try {
+          new URL(v);
+          return true;
+        } catch (err) {
+          return false;
+        }
+      },
+      message: (props) => `${props.value} is not a valid URL!`,
+    },
+  },
   location: {
     type: { type: String, default: "Point" },
     coordinates: { type: [Number], default: [0, 0] },

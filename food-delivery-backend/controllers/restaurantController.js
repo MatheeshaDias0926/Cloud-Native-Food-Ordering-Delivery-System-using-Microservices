@@ -100,6 +100,15 @@ exports.createRestaurant = async (req, res, next) => {
       );
     }
 
+    // Validate imageUrl if provided
+    if (req.body.imageUrl) {
+      try {
+        new URL(req.body.imageUrl);
+      } catch (err) {
+        return next(new ErrorResponse("Please provide a valid image URL", 400));
+      }
+    }
+
     const restaurant = await Restaurant.create(req.body);
 
     // Update user with restaurant reference
@@ -141,6 +150,15 @@ exports.updateRestaurant = async (req, res, next) => {
           401
         )
       );
+    }
+
+    // Validate imageUrl if provided
+    if (req.body.imageUrl) {
+      try {
+        new URL(req.body.imageUrl);
+      } catch (err) {
+        return next(new ErrorResponse("Please provide a valid image URL", 400));
+      }
     }
 
     restaurant = await Restaurant.findByIdAndUpdate(req.params.id, req.body, {

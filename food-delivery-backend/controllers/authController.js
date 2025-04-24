@@ -16,6 +16,7 @@ exports.register = async (req, res, next) => {
       address,
       restaurantName,
       cuisineType,
+      imageUrl,
     } = req.body;
 
     // Create user
@@ -30,10 +31,22 @@ exports.register = async (req, res, next) => {
 
     // If restaurant owner, create restaurant
     if (role === "restaurant") {
+      // Validate imageUrl if provided
+      if (imageUrl) {
+        try {
+          new URL(imageUrl);
+        } catch (err) {
+          return next(
+            new ErrorResponse("Please provide a valid image URL", 400)
+          );
+        }
+      }
+
       const restaurant = await Restaurant.create({
         name: restaurantName,
         cuisineType,
         address,
+        imageUrl,
         owner: user._id,
       });
       user.restaurant = restaurant._id;

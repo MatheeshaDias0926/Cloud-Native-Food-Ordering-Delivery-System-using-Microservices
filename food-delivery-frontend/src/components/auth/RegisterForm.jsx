@@ -9,6 +9,7 @@ const RegisterForm = ({ onSubmit, error }) => {
     role: "customer",
     restaurantName: "",
     cuisineType: "",
+    imageUrl: "",
     phone: "",
     address: "",
   });
@@ -92,10 +93,11 @@ const RegisterForm = ({ onSubmit, error }) => {
           name="role"
           value={formData.role}
           onChange={handleChange}
+          required
         >
           <option value="customer">Customer</option>
           <option value="restaurant">Restaurant Owner</option>
-          <option value="delivery">Delivery Partner</option>
+          <option value="delivery">Delivery Person</option>
         </select>
       </div>
       {formData.role === "restaurant" && (
@@ -122,9 +124,20 @@ const RegisterForm = ({ onSubmit, error }) => {
               required
             />
           </div>
+          <div className="form-group">
+            <label htmlFor="imageUrl">Restaurant Image URL</label>
+            <input
+              type="url"
+              id="imageUrl"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleChange}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
         </>
       )}
-      <button type="submit" className="register-button">
+      <button type="submit" className="submit-button">
         Register
       </button>
     </form>
