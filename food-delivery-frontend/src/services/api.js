@@ -7,9 +7,9 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
 });
 
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -23,12 +23,12 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      localStorage.removeItem("userType");
       localStorage.removeItem("user");
       window.location.href = "/login";
     }
@@ -36,64 +36,40 @@ api.interceptors.response.use(
   }
 );
 
-export const login = (email, password, userType) => {
-  return api.post("/auth/login", { email, password, userType });
-};
+// Add login and register methods to the api object
+api.login = (credentials) => api.post("/auth/login", credentials);
+api.register = (userData) => api.post("/auth/register", userData);
+api.getCurrentUser = () => api.get("/auth/me");
 
-export const register = (userData) => {
-  return api.post("/auth/register", userData);
-};
+// User APIs
+api.updateUserDetails = (userData) => api.put("/auth/updatedetails", userData);
+api.updatePassword = (passwordData) =>
+  api.put("/auth/updatepassword", passwordData);
 
-export const getCurrentUser = () => {
-  return api.get("/auth/me");
-};
+// Restaurant APIs
+api.getRestaurants = () => api.get("/restaurants");
+api.getRestaurantById = (id) => api.get(`/restaurants/${id}`);
+api.getMenuItems = (restaurantId) =>
+  api.get(`/restaurants/${restaurantId}/menu`);
+api.getRestaurantsInRadius = (zipcode, distance) =>
+  api.get(`/restaurants/radius/${zipcode}/${distance}`);
 
-export const updateProfile = (userData) => {
-  return api.put("/auth/profile", userData);
-};
+// Order APIs
+api.getOrders = () => api.get("/orders");
+api.getOrderById = (orderId) => api.get(`/orders/${orderId}`);
+api.createOrder = (orderData) => api.post("/orders", orderData);
+api.updateOrderStatus = (orderId, status) =>
+  api.put(`/orders/${orderId}/status`, { status });
+api.cancelOrder = (orderId) => api.put(`/orders/${orderId}/cancel`);
 
-export const changePassword = (passwordData) => {
-  return api.put("/auth/change-password", passwordData);
-};
+// Delivery APIs
+api.getDeliveries = () => api.get("/deliveries");
+api.getDeliveryById = (id) => api.get(`/deliveries/${id}`);
+api.updateDeliveryStatus = (id, status) =>
+  api.put(`/deliveries/${id}/status`, { status });
 
-export const forgotPassword = (email) => {
-  return api.post("/auth/forgot-password", { email });
-};
-
-export const resetPassword = (token, password) => {
-  return api.post("/auth/reset-password", { token, password });
-};
-
-export const getRestaurants = () => {
-  return api.get("/restaurants");
-};
-
-export const getRestaurantById = (id) => {
-  return api.get(`/restaurants/${id}`);
-};
-
-export const getMenuItems = (restaurantId) => {
-  return api.get(`/restaurants/${restaurantId}/menu`);
-};
-
-export const getMenuItemById = (restaurantId, menuItemId) => {
-  return api.get(`/restaurants/${restaurantId}/menu-items/${menuItemId}`);
-};
-
-export const createOrder = (orderData) => {
-  return api.post("/orders", orderData);
-};
-
-export const getOrders = () => {
-  return api.get("/orders");
-};
-
-export const getOrderById = (orderId) => {
-  return api.get(`/orders/${orderId}`);
-};
-
-export const updateOrderStatus = (orderId, status) => {
-  return api.patch(`/orders/${orderId}/status`, { status });
-};
+// Payment APIs
+api.processPayment = (paymentData) => api.post("/payments", paymentData);
+api.getPaymentHistory = () => api.get("/payments");
 
 export default api;
