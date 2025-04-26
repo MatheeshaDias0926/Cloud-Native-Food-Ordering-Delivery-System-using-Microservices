@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Mount routers
-// app.use("/api/v1/restaurants", require("./routes/restaurantRoutes"));
+app.use("/api/v1/restaurants", require("./routes/restaurantRoutes"));
 
 // Error handler
 app.use(errorHandler);
