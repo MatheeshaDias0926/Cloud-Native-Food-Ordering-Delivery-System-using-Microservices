@@ -1,140 +1,111 @@
-import { createContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
-export const CartContext = createContext();
+const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState(() => {
-    try {
-      const savedCart = localStorage.getItem("cart");
-      return savedCart
-        ? JSON.parse(savedCart)
-        : { items: [], restaurant: null };
-    } catch (error) {
-      console.error("Error loading cart from localStorage:", error);
-      return { items: [], restaurant: null };
-    }
-  });
+  const [cart, setCart] = useState([]);
+  const [restaurantId, setRestaurantId] = useState(null);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    try {
-      localStorage.setItem("cart", JSON.stringify(cart));
-    } catch (error) {
-      console.error("Error saving cart to localStorage:", error);
+    // Load cart from localStorage
+    const savedCart = localStorage.getItem("cart");
+    const savedRestaurantId = localStorage.getItem("restaurantId");
+
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
     }
-  }, [cart]);
-
-  const addToCart = (item, restaurant) => {
-    if (!item || !restaurant) {
-      console.error("Invalid item or restaurant data");
-      return;
+    if (savedRestaurantId) {
+      setRestaurantId(savedRestaurantId);
     }
+  }, []);
 
-    setCart((prev) => {
-      const currentCart = prev || { items: [], restaurant: null };
+  useEffect(() => {
+    // Save cart to localStorage whenever it changes
+    localStorage.setItem("cart", JSON.stringify(cart));
+    if (restaurantId) {
+      localStorage.setItem("restaurantId", restaurantId);
+    }
+  }, [cart, restaurantId]);
 
+  const addToCart = (item, newRestaurantId) => {
+    setCart((prevCart) => {
       // If adding from a different restaurant, clear the cart
-      if (
-        currentCart.restaurant &&
-        currentCart.restaurant._id !== restaurant._id
-      ) {
-        return {
-          restaurant,
-          items: [{ ...item, quantity: 1 }],
-        };
-      }
-
-      // If no restaurant set yet, set it
-      if (!currentCart.restaurant) {
-        return {
-          restaurant,
-          items: [{ ...item, quantity: 1 }],
-        };
+      if (newRestaurantId !== restaurantId) {
+        setRestaurantId(newRestaurantId);
+        return [item];
       }
 
       // Check if item already exists in cart
-      const existingItem = currentCart.items.find((i) => i._id === item._id);
-      if (existingItem) {
-        return {
-          ...currentCart,
-          items: currentCart.items.map((i) =>
-            i._id === item._id ? { ...i, quantity: i.quantity + 1 } : i
-          ),
-        };
+      const existingItemIndex = prevCart.findIndex(
+        (cartItem) => cartItem._id === item._id
+      );
+
+      if (existingItemIndex >= 0) {
+        // Update quantity if item exists
+        const updatedCart = [...prevCart];
+        updatedCart[existingItemIndex].quantity += item.quantity;
+        return updatedCart;
       }
 
       // Add new item
-      return {
-        ...currentCart,
-        items: [...currentCart.items, { ...item, quantity: 1 }],
-      };
+      return [...prevCart, item];
     });
   };
 
   const removeFromCart = (itemId) => {
-    setCart((prev) => {
-      if (!prev || !prev.items) {
-        return { items: [], restaurant: null };
-      }
-
-      const updatedItems = prev.items.filter((item) => item._id !== itemId);
-
-      // If no items left, clear restaurant
-      if (updatedItems.length === 0) {
-        return { items: [], restaurant: null };
-      }
-
-      return {
-        ...prev,
-        items: updatedItems,
-      };
-    });
+    setCart((prevCart) => prevCart.filter((item) => item._id !== itemId));
   };
 
   const updateQuantity = (itemId, quantity) => {
-    if (quantity < 1) {
+    if (quantity <= 0) {
       removeFromCart(itemId);
       return;
     }
 
-    setCart((prev) => {
-      if (!prev || !prev.items) {
-        return { items: [], restaurant: null };
-      }
-
-      return {
-        ...prev,
-        items: prev.items.map((item) =>
-          item._id === itemId ? { ...item, quantity } : item
-        ),
-      };
-    });
-  };
-
-  const clearCart = () => {
-    setCart({ items: [], restaurant: null });
-  };
-
-  const getCartTotal = () => {
-    return cart.items.reduce(
-      (total, item) => total + (item.price || 0) * (item.quantity || 0),
-      0
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item._id === itemId ? { ...item, quantity } : item
+      )
     );
   };
 
-  const getItemCount = () => {
-    return cart.items.reduce((count, item) => count + (item.quantity || 0), 0);
+  const clearCart = () => {
+    setCart([]);
+    setRestaurantId(null);
+    localStorage.removeItem("cart");
+    localStorage.removeItem("restaurantId");
   };
 
-  const value = {
-    cart,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    getCartTotal,
-    getItemCount,
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0);
   };
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  return (
+    <CartContext.Provider
+      value={{
+        cart,
+        restaurantId,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        getTotalItems,
+        getTotalPrice,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within a CartProvider");
+  }
+  return context;
 };

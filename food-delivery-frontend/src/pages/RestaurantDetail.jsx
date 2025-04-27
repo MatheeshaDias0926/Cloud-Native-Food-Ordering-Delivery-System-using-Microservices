@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useCart } from "../hooks/useCart";
+import { restaurants } from "../services/api";
+import useCart from "../hooks/useCart";
 import api from "../services/api";
 import "./RestaurantDetail.css";
 

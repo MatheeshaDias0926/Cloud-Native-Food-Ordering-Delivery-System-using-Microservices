@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  restaurant-service:
+    build: .
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=development
+      - PORT=5002
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/restaurant_service_db?retryWrites=true&w=majority
+      - JWT_SECRET=22ea55aa5d725826bbbec3a6e53e9f40b148888b04eecc2805c47c13d54eabe3d1e531a3866acd3a1cadbccc03bb016a1755b24f95242a31bc1758a70f768db1
+      - JWT_EXPIRE=30d
+      - CORS_ORIGIN=http://localhost:3000

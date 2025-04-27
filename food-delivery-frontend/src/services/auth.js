@@ -1,27 +1,12 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:5000/api/v1";
-
-// Configure axios defaults
-axios.defaults.withCredentials = true;
-
-// Add token to requests if available
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import api from "./api";
 
 // Register user
 export const register = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/register`, userData, {
-      withCredentials: true,
-    });
+    const response = await api.post("/auth/register", userData);
     if (response.data.token) {
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
     return response.data;
   } catch (error) {
@@ -36,11 +21,10 @@ export const register = async (userData) => {
 // Login user
 export const login = async (credentials) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/login`, credentials, {
-      withCredentials: true,
-    });
+    const response = await api.post("/auth/login", credentials);
     if (response.data.token) {
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
     }
     return response.data;
   } catch (error) {
@@ -52,14 +36,13 @@ export const login = async (credentials) => {
 // Logout user
 export const logout = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("user");
 };
 
 // Get current user
 export const getCurrentUser = async () => {
   try {
-    const response = await axios.get(`${API_URL}/auth/me`, {
-      withCredentials: true,
-    });
+    const response = await api.get("/auth/me");
     return response.data;
   } catch (error) {
     console.error(
