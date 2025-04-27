@@ -9,6 +9,7 @@ const {
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  getMenuItems,
 } = require("../controllers/restaurantController");
 const { protect, authorize } = require("../middlewares/auth");
 const advancedResults = require("../middlewares/advancedResults");
@@ -31,6 +32,7 @@ router.put("/:id", authorize("restaurant", "admin"), updateRestaurant);
 router.delete("/:id", authorize("restaurant", "admin"), deleteRestaurant);
 
 // Menu item routes
+router.get("/:restaurantId/menu", getMenuItems); // Public access to menu items
 router.post("/:restaurantId/menu", authorize("restaurant"), createMenuItem);
 router.put("/:restaurantId/menu/:id", authorize("restaurant"), updateMenuItem);
 router.delete(

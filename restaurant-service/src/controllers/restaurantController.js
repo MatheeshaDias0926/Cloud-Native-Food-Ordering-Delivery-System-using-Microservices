@@ -261,3 +261,29 @@ exports.deleteMenuItem = asyncHandler(async (req, res, next) => {
     data: {},
   });
 });
+
+// @desc    Get all menu items for a restaurant
+// @route   GET /api/v1/restaurants/:restaurantId/menu
+// @access  Public
+exports.getMenuItems = asyncHandler(async (req, res, next) => {
+  const restaurant = await Restaurant.findById(req.params.restaurantId);
+
+  if (!restaurant) {
+    return next(
+      new ErrorResponse(
+        `Restaurant not found with id of ${req.params.restaurantId}`,
+        404
+      )
+    );
+  }
+
+  const menuItems = await MenuItem.find({
+    restaurant: req.params.restaurantId,
+  });
+
+  res.status(200).json({
+    success: true,
+    count: menuItems.length,
+    data: menuItems,
+  });
+});

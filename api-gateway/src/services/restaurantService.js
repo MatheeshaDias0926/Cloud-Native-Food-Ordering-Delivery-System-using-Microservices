@@ -7,6 +7,11 @@ const restaurantServiceProxy = createProxyMiddleware({
   timeout: 10000,
   proxyTimeout: 10000,
   pathRewrite: {
+    // Handle menu item operations
+    "^/api/v1/restaurants/([0-9a-fA-F]{24})/menu/([0-9a-fA-F]{24})$":
+      "/api/v1/restaurants/$1/menu/$2",
+    "^/api/v1/restaurants/([0-9a-fA-F]{24})/menu$":
+      "/api/v1/restaurants/$1/menu",
     // Handle restaurant-specific operations (get, update, delete)
     "^/api/v1/restaurants/([0-9a-fA-F]{24})$": "/api/v1/restaurants/$1",
     // Handle get all restaurants
