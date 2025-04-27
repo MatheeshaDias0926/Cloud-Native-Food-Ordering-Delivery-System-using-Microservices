@@ -34,6 +34,11 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "User Service is healthy" });
+});
+
 // Mount routers
 app.use("/api/v1/auth", auth);
 

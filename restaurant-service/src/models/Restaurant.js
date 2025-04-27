@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const geocoder = require("../utils/geocoder");
 
 const RestaurantSchema = new mongoose.Schema(
   {
@@ -9,7 +10,7 @@ const RestaurantSchema = new mongoose.Schema(
       maxlength: [50, "Name cannot be more than 50 characters"],
     },
     description: { type: String },
-    cuisineType: { type: String },
+    cuisine: { type: String },
     address: {
       type: String,
       required: [true, "Please add an address"],
@@ -34,8 +35,7 @@ const RestaurantSchema = new mongoose.Schema(
       coordinates: { type: [Number], default: [0, 0] },
     },
     owner: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
     },
     isActive: { type: Boolean, default: true },
@@ -68,11 +68,15 @@ RestaurantSchema.virtual("menuItems", {
 RestaurantSchema.pre("save", async function (next) {
   if (!this.isModified("address")) return next();
 
-  const loc = await geocoder.geocode(this.address);
-  this.location = {
-    type: "Point",
-    coordinates: [loc[0].longitude, loc[0].latitude],
-  };
+  try {
+    const loc = await geocoder.geocode(this.address);
+    this.location = {
+      type: "Point",
+      coordinates: [loc[0].longitude, loc[0].latitude],
+    };
+  } catch (err) {
+    console.error("Geocoding error:", err);
+  }
   next();
 });
 

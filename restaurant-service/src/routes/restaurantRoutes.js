@@ -19,8 +19,8 @@ const router = express.Router({ mergeParams: true });
 
 // Public routes
 router.get("/", advancedResults(Restaurant, "menuItems"), getRestaurants);
-router.get("/:id", getRestaurant);
 router.get("/radius/:zipcode/:distance", getRestaurantsInRadius);
+router.get("/:id", getRestaurant);
 
 // Protected routes
 router.use(protect);

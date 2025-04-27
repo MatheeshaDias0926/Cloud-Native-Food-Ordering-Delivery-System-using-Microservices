@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 const ErrorResponse = require("../utils/errorResponse");
-const User = require("../models/User");
+const axios = require("axios");
+const dotenv = require("dotenv");
+// Load environment variables from .env file
+dotenv.config();
 
 // Protect routes
 exports.protect = async (req, res, next) => {
@@ -24,10 +27,16 @@ exports.protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    req.user = await User.findById(decoded.id);
+    // Set user data from token
+    req.user = {
+      id: decoded.id,
+      role: decoded.role,
+      email: decoded.email,
+    };
 
     next();
   } catch (err) {
+    console.error("Auth error:", err.message);
     return next(new ErrorResponse("Not authorized to access this route", 401));
   }
 };

@@ -46,12 +46,27 @@ exports.createRestaurant = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const restaurant = await Restaurant.create(req.body);
+  // Validate required fields
+  const requiredFields = ["name", "address", "cuisine"];
+  const missingFields = requiredFields.filter((field) => !req.body[field]);
 
-  res.status(201).json({
-    success: true,
-    data: restaurant,
-  });
+  if (missingFields.length > 0) {
+    return next(
+      new ErrorResponse(`Please provide ${missingFields.join(", ")}`, 400)
+    );
+  }
+
+  try {
+    const restaurant = await Restaurant.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: restaurant,
+    });
+  } catch (err) {
+    console.error("Restaurant creation error:", err);
+    return next(new ErrorResponse("Error creating restaurant", 500));
+  }
 });
 
 // @desc    Update restaurant
