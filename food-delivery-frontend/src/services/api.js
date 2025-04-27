@@ -1,9 +1,12 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/v1";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:4000/api/v1";
 
 const api = axios.create({
   baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
   withCredentials: true,
 });
 
@@ -34,31 +37,89 @@ api.interceptors.response.use(
   }
 );
 
-// Add login and register methods to the api object
-api.login = (credentials) => api.post("/auth/login", credentials);
-api.register = (userData) => api.post("/auth/register", userData);
-api.getCurrentUser = () => api.get("/auth/me");
+// Auth API
+export const auth = {
+  login: async (credentials) => {
+    const response = await api.post("/auth/login", credentials);
+    return response.data;
+  },
+  register: async (userData) => {
+    const response = await api.post("/auth/register", userData);
+    return response.data;
+  },
+  logout: () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+  },
+  getCurrentUser: () => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  },
+};
 
-// User APIs
-api.updateUserDetails = (userData) => api.put("/auth/updatedetails", userData);
-api.updatePassword = (passwordData) =>
-  api.put("/auth/updatepassword", passwordData);
+// Restaurant API
+export const restaurants = {
+  getRestaurants: async () => {
+    const response = await api.get("/restaurants");
+    return response.data;
+  },
+  getRestaurantById: async (id) => {
+    const response = await api.get(`/restaurants/${id}`);
+    return response.data;
+  },
+  getMenuItems: async (restaurantId) => {
+    const response = await api.get(`/restaurants/${restaurantId}/menu`);
+    return response.data;
+  },
+  createRestaurant: async (restaurantData) => {
+    const response = await api.post("/restaurants", restaurantData);
+    return response.data;
+  },
+  updateRestaurant: async (id, restaurantData) => {
+    const response = await api.put(`/restaurants/${id}`, restaurantData);
+    return response.data;
+  },
+};
 
-// Restaurant APIs
-api.getRestaurants = () => api.get("/restaurants");
-api.getRestaurantById = (id) => api.get(`/restaurants/${id}`);
-api.getMenuItems = (restaurantId) =>
-  api.get(`/restaurants/${restaurantId}/menu`);
-api.getRestaurantsInRadius = (zipcode, distance) =>
-  api.get(`/restaurants/radius/${zipcode}/${distance}`);
+// Order API
+export const orders = {
+  createOrder: async (orderData) => {
+    const response = await api.post("/orders", orderData);
+    return response.data;
+  },
+  getOrders: async () => {
+    const response = await api.get("/orders");
+    return response.data;
+  },
+  getOrderById: async (id) => {
+    const response = await api.get(`/orders/${id}`);
+    return response.data;
+  },
+  updateOrderStatus: async (id, status) => {
+    const response = await api.put(`/orders/${id}/status`, { status });
+    return response.data;
+  },
+  getUserOrders: async (userId) => {
+    const response = await api.get(`/orders/user/${userId}`);
+    return response.data;
+  },
+};
 
-// Order APIs
-api.getOrders = () => api.get("/orders");
-api.getOrderById = (orderId) => api.get(`/orders/${orderId}`);
-api.createOrder = (orderData) => api.post("/orders", orderData);
-api.updateOrderStatus = (orderId, status) =>
-  api.put(`/orders/${orderId}/status`, { status });
-api.cancelOrder = (orderId) => api.put(`/orders/${orderId}/cancel`);
+// User API
+export const users = {
+  getProfile: async () => {
+    const response = await api.get("/users/profile");
+    return response.data;
+  },
+  updateProfile: async (userData) => {
+    const response = await api.put("/users/profile", userData);
+    return response.data;
+  },
+  updatePassword: async (passwordData) => {
+    const response = await api.put("/users/password", passwordData);
+    return response.data;
+  },
+};
 
 // Delivery APIs
 api.getDeliveries = () => api.get("/deliveries");

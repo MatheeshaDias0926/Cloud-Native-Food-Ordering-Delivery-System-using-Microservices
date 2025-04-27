@@ -35,7 +35,7 @@ export const getCurrentUser = createAsyncThunk(
   "auth/getCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.getCurrentUser();
+      const response = await api.get("/auth/me");
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -46,9 +46,9 @@ export const getCurrentUser = createAsyncThunk(
 );
 
 const initialState = {
-  user: JSON.parse(localStorage.getItem("user")) || null,
+  user: null,
   token: localStorage.getItem("token") || null,
-  userType: JSON.parse(localStorage.getItem("user"))?.userType || null,
+  userType: null,
   loading: false,
   error: null,
 };
@@ -92,6 +92,7 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload;
+        state.userType = action.payload.userType;
         state.isAuthenticated = true;
       })
       .addCase(getCurrentUser.rejected, (state) => {

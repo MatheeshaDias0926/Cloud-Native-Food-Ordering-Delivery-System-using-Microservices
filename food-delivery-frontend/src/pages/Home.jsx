@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import api from "../services/api";
+import { getRestaurants } from "../services/restaurants";
 import "./Home.css";
 
 const Home = () => {
@@ -11,8 +11,8 @@ const Home = () => {
   useEffect(() => {
     const fetchFeaturedRestaurants = async () => {
       try {
-        const response = await api.getRestaurants();
-        setFeaturedRestaurants(response.data.data || []);
+        const response = await getRestaurants();
+        setFeaturedRestaurants(response.data || []);
       } catch (err) {
         setError("Failed to load featured restaurants");
         console.error("Error fetching featured restaurants:", err);
