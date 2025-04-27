@@ -61,12 +61,41 @@ app.get("/health", (req, res) => {
 
 // Service Proxies with Authentication
 app.use("/api/v1/auth", (req, res, next) => {
-  console.log("Handling auth request:", {
-    method: req.method,
-    path: req.path,
-    body: req.body,
-  });
-  userService(req, res, next);
+  // Handle login and register routes
+  if (
+    req.method === "POST" &&
+    (req.path === "/login" || req.path === "/register")
+  ) {
+    console.log("Handling auth request:", {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      headers: req.headers,
+    });
+    // Ensure the request is forwarded as POST
+    req.method = "POST";
+    userService(req, res, next);
+  } else if (req.method === "GET" && req.path === "/me") {
+    // Handle get current user route
+    authMiddleware(req, res, () => {
+      console.log("Handling get current user request:", {
+        method: req.method,
+        path: req.path,
+        user: req.user,
+      });
+      userService(req, res, next);
+    });
+  } else {
+    // For other auth routes, require authentication
+    authMiddleware(req, res, () => {
+      console.log("Handling authenticated auth request:", {
+        method: req.method,
+        path: req.path,
+        user: req.user,
+      });
+      userService(req, res, next);
+    });
+  }
 });
 
 app.use("/api/v1/restaurants", authMiddleware, restaurantService);

@@ -147,7 +147,13 @@ exports.updatePassword = async (req, res, next) => {
 // @access  Private/Admin
 exports.getUsers = async (req, res, next) => {
   try {
-    res.status(200).json(res.advancedResults);
+    const users = await User.find();
+
+    res.status(200).json({
+      success: true,
+      count: users.length,
+      data: users,
+    });
   } catch (err) {
     next(err);
   }

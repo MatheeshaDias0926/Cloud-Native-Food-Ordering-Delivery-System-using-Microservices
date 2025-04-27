@@ -6,6 +6,14 @@ const restaurantServiceProxy = createProxyMiddleware({
   secure: false,
   timeout: 10000,
   proxyTimeout: 10000,
+  pathRewrite: {
+    // Handle restaurant-specific operations (get, update, delete)
+    "^/api/v1/restaurants/([0-9a-fA-F]{24})$": "/api/v1/restaurants/$1",
+    // Handle get all restaurants
+    "^/api/v1/restaurants/+$": "/api/v1/restaurants",
+    // Handle other restaurant routes
+    "^/api/v1/restaurants": "/api/v1/restaurants",
+  },
   onProxyReq: (proxyReq, req, res) => {
     // Log the request for debugging
     console.log("Proxying request to restaurant service:", {
@@ -14,6 +22,7 @@ const restaurantServiceProxy = createProxyMiddleware({
       target: process.env.RESTAURANT_SERVICE_URL,
       headers: req.headers,
       user: req.user,
+      body: req.body,
     });
 
     // Set user headers if available
@@ -22,6 +31,11 @@ const restaurantServiceProxy = createProxyMiddleware({
       if (req.user.role) {
         proxyReq.setHeader("X-User-Role", req.user.role);
       }
+    }
+
+    // Set Authorization header if present
+    if (req.headers.authorization) {
+      proxyReq.setHeader("Authorization", req.headers.authorization);
     }
 
     // Ensure content-length is set correctly
@@ -35,6 +49,8 @@ const restaurantServiceProxy = createProxyMiddleware({
     console.log("Received response from restaurant service:", {
       statusCode: proxyRes.statusCode,
       headers: proxyRes.headers,
+      path: req.path,
+      method: req.method,
     });
   },
   onError: (err, req, res) => {
