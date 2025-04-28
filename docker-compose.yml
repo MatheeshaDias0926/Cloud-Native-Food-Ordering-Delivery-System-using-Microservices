@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - USER_SERVICE_URL=http://user-service:5001
+      - RESTAURANT_SERVICE_URL=http://restaurant-service:5002
+      - ORDER_SERVICE_URL=http://order-service:5003
+      - DELIVERY_SERVICE_URL=http://delivery-service:5004
+      - PAYMENT_SERVICE_URL=http://payment-service:5005
+    depends_on:
+      - user-service
+      - restaurant-service
+      - order-service
+      - delivery-service
+      - payment-service
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=development
+      - PORT=5001
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/user_service_db?retryWrites=true&w=majority
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRE=30d
+
+  restaurant-service:
+    build: ./restaurant-service
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=development
+      - PORT=5002
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/restaurant_service_db?retryWrites=true&w=majority
+      - JWT_SECRET=your_jwt_secret
+      - JWT_EXPIRE=30d
+      - CORS_ORIGIN=http://localhost:3000
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=development
+      - PORT=5003
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/order_service_db?retryWrites=true&w=majority
+      - USER_SERVICE_URL=http://user-service:5001
+      - RESTAURANT_SERVICE_URL=http://restaurant-service:5002
+      - DELIVERY_SERVICE_URL=http://delivery-service:5004
+      - PAYMENT_SERVICE_URL=http://payment-service:5005
+      - JWT_SECRET=your_jwt_secret
+
+  delivery-service:
+    build: ./delivery-service
+    ports:
+      - "5004:5004"
+    environment:
+      - NODE_ENV=development
+      - PORT=5004
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/delivery_service_db?retryWrites=true&w=majority
+      - ORDER_SERVICE_URL=http://order-service:5003
+      - JWT_SECRET=your_jwt_secret
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "5005:5005"
+    environment:
+      - NODE_ENV=development
+      - PORT=5005
+      - MONGO_URI=mongodb+srv://Matheesha:Matheesha@cluster0.xqfraot.mongodb.net/payment_service_db?retryWrites=true&w=majority
+      - STRIPE_SECRET_KEY=your_stripe_secret_key
+      - ORDER_SERVICE_URL=http://order-service:5003
+      - JWT_SECRET=your_jwt_secret

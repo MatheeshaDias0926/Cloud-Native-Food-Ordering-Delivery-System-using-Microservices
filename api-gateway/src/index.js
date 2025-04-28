@@ -7,6 +7,7 @@ const requiredEnvVars = [
   "ORDER_SERVICE_URL",
   "DELIVERY_SERVICE_URL",
   "JWT_SECRET",
+  "PAYMENT_SERVICE_URL",
 ];
 
 const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
@@ -27,6 +28,7 @@ const userService = require("./services/userService");
 const restaurantService = require("./services/restaurantService");
 const orderService = require("./services/orderService");
 const deliveryService = require("./services/deliveryService");
+const paymentService = require("./services/paymentService");
 
 const app = express();
 
@@ -104,6 +106,8 @@ app.use("/api/v1/orders", authMiddleware, orderService);
 
 app.use("/api/v1/deliveries", authMiddleware, deliveryService);
 
+app.use("/api/v1/payments", authMiddleware, paymentService);
+
 // Error Handling
 app.use((err, req, res, next) => {
   console.error("Error:", err);
@@ -122,4 +126,5 @@ app.listen(PORT, () => {
   console.log(`- Restaurant Service: ${process.env.RESTAURANT_SERVICE_URL}`);
   console.log(`- Order Service: ${process.env.ORDER_SERVICE_URL}`);
   console.log(`- Delivery Service: ${process.env.DELIVERY_SERVICE_URL}`);
+  console.log(`- Payment Service: ${process.env.PAYMENT_SERVICE_URL}`);
 });
