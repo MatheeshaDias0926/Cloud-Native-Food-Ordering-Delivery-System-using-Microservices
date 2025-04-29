@@ -1,20 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../hooks/useCart";
-import { createOrder } from "../services/orders";
 import "./Cart.css";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } =
-    useCart();
-  const cartItems = cart?.items || [];
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleCheckout = async () => {
-    if (!cartItems || cartItems.length === 0) {
+  useEffect(() => {
+    const savedCart = JSON.parse(localStorage.getItem("cart")) || [];
+    setCart(savedCart);
+    calculateTotal(savedCart);
+  }, []);
+
+  const calculateTotal = (cartItems) => {
+    const total = cartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    setCartTotal(total);
+  };
+
+  const removeFromCart = (itemId) => {
+    const updatedCart = cart.filter((item) => item._id !== itemId);
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    calculateTotal(updatedCart);
+  };
+
+  const updateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+
+    const updatedCart = cart.map((item) =>
+      item._id === itemId ? { ...item, quantity: newQuantity } : item
+    );
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    calculateTotal(updatedCart);
+  };
+
+  const handleCheckout = () => {
+    if (cart.length === 0) {
       setError("Your cart is empty");
       return;
     }
@@ -24,118 +54,48 @@ const Cart = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Prepare order data
-      const orderData = {
-        restaurant: cart.restaurant._id,
-        items: cartItems.map((item) => ({
-          menuItem: item._id,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        totalAmount: getCartTotal() + 5, // Including delivery fee
-        deliveryFee: 5,
-        status: "pending",
-        deliveryAddress: deliveryAddress.trim(),
-      };
-
-      // Create the order
-      const response = await createOrder(orderData);
-
-      // Clear the cart after successful order creation
-      clearCart();
-
-      // Navigate to order confirmation page
-      navigate(`/orders/${response.data._id}`);
-    } catch (err) {
-      console.error("Error creating order:", err);
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          "Failed to create order. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
+    // Navigate to payment page
+    navigate("/payment");
   };
 
-  if (!cartItems || cartItems.length === 0) {
+  if (cart.length === 0) {
     return (
-      <div className="cart-container">
-        <div className="cart-content">
-          <div className="empty-cart">
-            <svg
-              className="empty-cart-icon"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-              />
-            </svg>
-            <h2 className="empty-cart-title">Your cart is empty</h2>
-            <p className="empty-cart-text">
-              Looks like you haven't added any items to your cart yet.
-            </p>
-            <button
-              onClick={() => navigate("/restaurants")}
-              className="browse-restaurants-button"
-            >
-              Browse Restaurants
-            </button>
-          </div>
-        </div>
+      <div className="empty-cart">
+        <h2>Your cart is empty</h2>
+        <p>Looks like you haven't added any items to your cart yet.</p>
+        <button
+          onClick={() => navigate("/restaurants")}
+          className="browse-button"
+        >
+          Browse Restaurants
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="cart-container">
-      <div className="cart-content">
-        <div className="cart-header">
-          <h1 className="cart-title">Your Cart</h1>
-          {cart.restaurant && (
-            <div className="restaurant-info">
-              <h2>{cart.restaurant.name}</h2>
-              <p>{cart.restaurant.cuisineType}</p>
-            </div>
-          )}
-        </div>
-
-        {error && <div className="error-message">{error}</div>}
-
+    <div className="cart-page">
+      <h1>Your Cart</h1>
+      <div className="cart-container">
         <div className="cart-items">
-          {cartItems.map((item) => (
+          {cart.map((item) => (
             <div key={item._id} className="cart-item">
               <img
-                src={item.image || "https://via.placeholder.com/100x100"}
+                src={item.image}
                 alt={item.name}
                 className="cart-item-image"
               />
               <div className="cart-item-details">
-                <h3 className="cart-item-name">{item.name}</h3>
-                <p className="cart-item-restaurant">
-                  {cart.restaurant?.name || "Unknown Restaurant"}
-                </p>
-                <div className="quantity-controls">
+                <h3>{item.name}</h3>
+                <p>{item.restaurantName}</p>
+                <div className="cart-item-quantity">
                   <button
-                    className="quantity-button"
-                    onClick={() =>
-                      updateQuantity(item._id, Math.max(0, item.quantity - 1))
-                    }
+                    onClick={() => updateQuantity(item._id, item.quantity - 1)}
                   >
                     -
                   </button>
-                  <span className="quantity-input">{item.quantity}</span>
+                  <span>{item.quantity}</span>
                   <button
-                    className="quantity-button"
                     onClick={() => updateQuantity(item._id, item.quantity + 1)}
                   >
                     +
@@ -143,51 +103,75 @@ const Cart = () => {
                 </div>
               </div>
               <div className="cart-item-price">
-                ${((item.price || 0) * (item.quantity || 0)).toFixed(2)}
+                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                <button
+                  onClick={() => removeFromCart(item._id)}
+                  className="remove-item"
+                >
+                  ×
+                </button>
               </div>
-              <button
-                className="remove-button"
-                onClick={() => removeFromCart(item._id)}
-              >
-                Remove
-              </button>
             </div>
           ))}
         </div>
 
-        <div className="delivery-address">
-          <h3>Delivery Address</h3>
-          <textarea
-            value={deliveryAddress}
-            onChange={(e) => setDeliveryAddress(e.target.value)}
-            placeholder="Enter your delivery address"
-            className="address-input"
-            rows={3}
-          />
-        </div>
-
-        <div className="cart-summary">
-          <h2 className="summary-title">Order Summary</h2>
-          <div className="summary-row">
-            <span className="summary-label">Subtotal</span>
-            <span className="summary-value">${getCartTotal().toFixed(2)}</span>
+        <div className="checkout-section">
+          <h2>Checkout</h2>
+          <div className="delivery-address">
+            <h3>Delivery Address</h3>
+            <input
+              type="text"
+              value={deliveryAddress}
+              onChange={(e) => setDeliveryAddress(e.target.value)}
+              placeholder="Enter your delivery address"
+              required
+            />
           </div>
-          <div className="summary-row">
-            <span className="summary-label">Delivery Fee</span>
-            <span className="summary-value">$5.00</span>
+          <div className="payment-method">
+            <h3>Payment Method</h3>
+            <div className="payment-options">
+              <label>
+                <input
+                  type="radio"
+                  value="card"
+                  checked={paymentMethod === "card"}
+                  onChange={() => setPaymentMethod("card")}
+                />
+                Credit/Debit Card
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="paypal"
+                  checked={paymentMethod === "paypal"}
+                  onChange={() => setPaymentMethod("paypal")}
+                />
+                PayPal
+              </label>
+            </div>
           </div>
-          <div className="summary-row total">
-            <span className="summary-label">Total</span>
-            <span className="summary-value">
-              ${(getCartTotal() + 5).toFixed(2)}
-            </span>
+          <div className="order-summary">
+            <h3>Order Summary</h3>
+            <div className="summary-item">
+              <span>Subtotal</span>
+              <span>${cartTotal.toFixed(2)}</span>
+            </div>
+            <div className="summary-item">
+              <span>Delivery Fee</span>
+              <span>$2.99</span>
+            </div>
+            <div className="summary-total">
+              <span>Total</span>
+              <span>${(cartTotal + 2.99).toFixed(2)}</span>
+            </div>
           </div>
+          {error && <div className="error-message">{error}</div>}
           <button
-            className="checkout-button"
+            className="place-order-button"
             onClick={handleCheckout}
-            disabled={loading}
+            disabled={isProcessing}
           >
-            {loading ? "Processing..." : "Proceed to Checkout"}
+            {isProcessing ? "Processing..." : "Place Order"}
           </button>
         </div>
       </div>
