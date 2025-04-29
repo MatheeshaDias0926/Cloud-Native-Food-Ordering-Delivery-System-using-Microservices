@@ -65,8 +65,8 @@ const Payment = () => {
       // Clear cart
       localStorage.removeItem("cart");
 
-      // Navigate to order confirmation
-      navigate("/order-confirmation", { state: { order } });
+      // Navigate to orders page
+      navigate("/orders");
     } catch (err) {
       setError("Payment failed. Please try again.");
     } finally {
